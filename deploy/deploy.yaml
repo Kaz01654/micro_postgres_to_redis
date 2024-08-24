@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psql2redisv2
+  labels:
+    app: psql2redisv2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: psql2redisv2
+  template:
+    metadata:
+      labels:
+        app: psql2redisv2
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: psql2redisv2
+        image: us-east1-docker.pkg.dev/detektor-kubernetes-prod/images-detektor/driver-psql2redisv2
+        resources:
+          requests:
+            memory: "60Mi"
+            cpu: "100m"
+            ephemeral-storage: "1Gi"
+          limits:
+            memory: "80Mi"
+            cpu: "200m"
+
+        envFrom:
+          - secretRef:
+              name: keys-skytrack-PAIS
+          - secretRef:
+              name: keys-eboras-PAIS

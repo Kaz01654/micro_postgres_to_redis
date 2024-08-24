@@ -1,0 +1,49 @@
+steps:
+  # build the container imagen
+  # CONSTRUCIÓN Y PUBLICACION DEL RECEPTION
+ 
+ # CONSTRUCIÓN Y PUBLICACION DEL DECODED
+  - id: 'Build-rec'
+    name: "gcr.io/cloud-builders/docker"
+    args: ['build', '-t', '$_IMAGE_NAME:$SHORT_SHA', '-f', 'Dockerfile','.']
+ 
+    # push container imagen
+  - id: 'push-rec'
+    name: "gcr.io/cloud-builders/docker"
+    args: ['push', '$_IMAGE_NAME:$SHORT_SHA']
+
+  ####DESPLIEGUE Historicos #######
+  ####DESPLIEGUE Historicos #######
+  - id: 'ajuste tenant'
+    name: 'bash'
+    args: ['-c', ' cat deploy/deploy.yaml | sed "s/PAIS/$_PAIS/g" > deploy/deploy1.yaml ;
+            ls -la deploy; ']
+
+ ####DESPLIEGUE DE RECEPTION #######
+
+  - id: 'deploy-storage-$_PAIS-decoded'
+    name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+    - run
+    - -o 
+    - /deploy-storage-$_PAIS-decoded/
+    - --namespace=$_NAMESPACE
+    - --filename=deploy/deploy1.yaml
+    - --image=$_IMAGE_NAME:$SHORT_SHA
+    - --location=us-east1-b
+    - --cluster=latam-cluster-detektor
+    - --label=driver=$_DRIVER,environment=$_ENVIRONMENT,pais=$_PAIS,tenant=$_PAIS,plataforma=$_PLATAFORMA
+    - --project=$_PROJECT       
+
+substitutions:
+  _IMAGE_NAME: us-east1-docker.pkg.dev/detektor-kubernetes-prod/images-detektor/driver-psql2redisv2
+  _PAIS: sv
+  _NAMESPACE: sv-general
+  _PLATAFORMA: skytrack
+  _CONFIG_PAIS: sv
+  _ENVIRONMENT: prod
+  _DRIVER: psql2redis
+  _PROJECT: detektor-kubernetes-prod
+options:
+  logging: CLOUD_LOGGING_ONLY
+    
